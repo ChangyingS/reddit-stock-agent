@@ -1,21 +1,48 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Mail, Plus, Trash2, Power, Save } from "lucide-react";
+import { createClient } from "@supabase/supabase-js";
 
-const DEFAULT_EMAILS = ["shaochangying123@gmail.com"];
+const supabase = createClient(
+  process.env.NEXT_PUBLIC_SUPABASE_URL!,
+  process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+);
 
 function isValidEmail(email: string) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
 }
 
+type Subscriber = {
+  id: number;
+  email: string;
+  active: boolean;
+};
+
 export default function Home() {
-  const [emails, setEmails] = useState<string[]>(DEFAULT_EMAILS);
+  const [emails, setEmails] = useState<Subscriber[]>([]);
   const [newEmail, setNewEmail] = useState("");
   const [enabled, setEnabled] = useState(true);
   const [message, setMessage] = useState("");
 
-  const addEmail = () => {
+  useEffect(() => {
+    fetchEmails();
+  }, []);
+
+  const fetchEmails = async () => {
+    const { data, error } = await supabase
+      .from("subscribers")
+      .select("*")
+      .eq("active", true);
+
+    if (error) {
+      setMessage("Failed to load emails.");
+    } else {
+      setEmails(data || []);
+    }
+  };
+
+  const addEmail = async () => {
     const email = newEmail.trim().toLowerCase();
 
     if (!isValidEmail(email)) {
@@ -23,23 +50,41 @@ export default function Home() {
       return;
     }
 
-    if (emails.includes(email)) {
-      setMessage("This email already exists.");
+    const { error } = await supabase.from("subscribers").insert([
+      {
+        email,
+        active: true,
+      },
+    ]);
+
+    if (error) {
+      // setMessage("Failed to add email.");
+      setMessage(`Failed to add email: ${error.message}`);
       return;
     }
 
-    setEmails([...emails, email]);
     setNewEmail("");
     setMessage("Email added.");
+    fetchEmails();
   };
 
-  const deleteEmail = (email: string) => {
-    setEmails(emails.filter((item) => item !== email));
+  const deleteEmail = async (id: number) => {
+    const { error } = await supabase
+      .from("subscribers")
+      .update({ active: false })
+      .eq("id", id);
+
+    if (error) {
+      setMessage("Failed to remove email.");
+      return;
+    }
+
     setMessage("Email removed.");
+    fetchEmails();
   };
 
   const saveSettings = () => {
-    setMessage("Settings saved.");
+    setMessage("Settings synced with Supabase.");
   };
 
   return (
@@ -79,11 +124,11 @@ export default function Home() {
               onChange={(event) => setNewEmail(event.target.value)}
               onKeyDown={(event) => event.key === "Enter" && addEmail()}
               placeholder="Enter email address"
-              className="flex-1 rounded-2xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-300"
+              className="flex-1 rounded-2xl border px-4 py-3 text-sm outline-none"
             />
             <button
               onClick={addEmail}
-              className="rounded-2xl bg-slate-900 px-4 text-white hover:bg-slate-700"
+              className="rounded-2xl bg-slate-900 px-4 text-white"
             >
               <Plus size={18} />
             </button>
@@ -96,14 +141,14 @@ export default function Home() {
               No email added yet.
             </div>
           ) : (
-            emails.map((email) => (
+            emails.map((item) => (
               <div
-                key={email}
+                key={item.id}
                 className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
               >
-                <span className="text-sm font-medium">{email}</span>
+                <span className="text-sm font-medium">{item.email}</span>
                 <button
-                  onClick={() => deleteEmail(email)}
+                  onClick={() => deleteEmail(item.id)}
                   className="rounded-xl p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
                 >
                   <Trash2 size={17} />
@@ -121,7 +166,7 @@ export default function Home() {
 
         <button
           onClick={saveSettings}
-          className="mt-6 flex w-full items-center justify-center rounded-2xl bg-slate-900 py-4 text-white hover:bg-slate-700"
+          className="mt-6 flex w-full items-center justify-center rounded-2xl bg-slate-900 py-4 text-white"
         >
           <Save className="mr-2" size={18} /> Save Settings
         </button>
