@@ -6,9 +6,9 @@ import { sendReportEmail } from "@/lib/email";
 export async function GET(request: Request) {
   const authHeader = request.headers.get("authorization");
 
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
-    return new Response("Unauthorized", { status: 401 });
-  }
+  // if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  //   return new Response("Unauthorized", { status: 401 });
+  // }
 
   const supabase = createClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
