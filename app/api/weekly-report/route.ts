@@ -29,11 +29,21 @@ export async function GET(request: Request) {
   const topStocks = await getTopRedditStocks();
   const report = generateReport(topStocks);
 
-  await sendReportEmail(emails, report);
+  // await sendReportEmail(emails, report);
+  const emailResult = await sendReportEmail(emails, report);
+
+  // return Response.json({
+  //   success: true,
+  //   sent_to: emails.length,
+  //   topStocks
+  // });
 
   return Response.json({
     success: true,
     sent_to: emails.length,
+    emailResult,
     topStocks
   });
+
 }
+// 
