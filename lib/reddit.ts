@@ -1,5 +1,10 @@
 const SUBREDDITS = ["wallstreetbets", "stocks", "investing"];
 
+export type RankedStock = {
+  ticker: string;
+  mentions: number;
+};
+
 const COMMON_WORDS = new Set([
   "THE","AND","FOR","ARE","BUT","NOT","YOU","ALL","NEW","NOW","CEO","USA","ATH","IPO",
   "LOL","THIS","THAT","WITH","HOLD","SELL","BUY","MOON","PUMP","DUMP","YOLO","GAIN",
