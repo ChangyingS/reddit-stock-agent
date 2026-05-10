@@ -1,65 +1,131 @@
-import Image from "next/image";
+"use client";
+
+import { useState } from "react";
+import { Mail, Plus, Trash2, Power, Save } from "lucide-react";
+
+const DEFAULT_EMAILS = ["shaochangying123@gmail.com"];
+
+function isValidEmail(email: string) {
+  return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+}
 
 export default function Home() {
+  const [emails, setEmails] = useState<string[]>(DEFAULT_EMAILS);
+  const [newEmail, setNewEmail] = useState("");
+  const [enabled, setEnabled] = useState(true);
+  const [message, setMessage] = useState("");
+
+  const addEmail = () => {
+    const email = newEmail.trim().toLowerCase();
+
+    if (!isValidEmail(email)) {
+      setMessage("Please enter a valid email address.");
+      return;
+    }
+
+    if (emails.includes(email)) {
+      setMessage("This email already exists.");
+      return;
+    }
+
+    setEmails([...emails, email]);
+    setNewEmail("");
+    setMessage("Email added.");
+  };
+
+  const deleteEmail = (email: string) => {
+    setEmails(emails.filter((item) => item !== email));
+    setMessage("Email removed.");
+  };
+
+  const saveSettings = () => {
+    setMessage("Settings saved.");
+  };
+
   return (
-    <div className="flex flex-col flex-1 items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex flex-1 w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+    <main className="min-h-screen bg-slate-100 p-6 text-slate-900">
+      <div className="mx-auto max-w-2xl rounded-3xl bg-white p-6 shadow-sm">
+        <div className="flex items-start justify-between gap-4">
+          <div>
+            <h1 className="text-2xl font-semibold">Reddit Stock Email Agent</h1>
+            <p className="mt-2 text-sm text-slate-600">
+              Manage who receives the weekly Reddit hot stock report.
+            </p>
+          </div>
+
+          <button
+            onClick={() => setEnabled(!enabled)}
+            className={`flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold ${
+              enabled ? "bg-emerald-600 text-white" : "bg-slate-300 text-slate-700"
+            }`}
           >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
+            <Power size={16} />
+            {enabled ? "On" : "Off"}
+          </button>
+        </div>
+
+        <div className="mt-6 rounded-2xl bg-slate-50 p-4 text-sm text-slate-600">
+          Schedule: every Monday, 9:00 AM Singapore time
+        </div>
+
+        <div className="mt-6 space-y-3">
+          <label className="flex items-center gap-2 text-sm font-medium">
+            <Mail size={16} /> Recipient Emails
+          </label>
+
+          <div className="flex gap-2">
+            <input
+              value={newEmail}
+              onChange={(event) => setNewEmail(event.target.value)}
+              onKeyDown={(event) => event.key === "Enter" && addEmail()}
+              placeholder="Enter email address"
+              className="flex-1 rounded-2xl border px-4 py-3 text-sm outline-none focus:ring-2 focus:ring-slate-300"
             />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+            <button
+              onClick={addEmail}
+              className="rounded-2xl bg-slate-900 px-4 text-white hover:bg-slate-700"
+            >
+              <Plus size={18} />
+            </button>
+          </div>
         </div>
-      </main>
-    </div>
+
+        <div className="mt-5 space-y-2">
+          {emails.length === 0 ? (
+            <div className="rounded-2xl border border-dashed p-4 text-center text-sm text-slate-500">
+              No email added yet.
+            </div>
+          ) : (
+            emails.map((email) => (
+              <div
+                key={email}
+                className="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"
+              >
+                <span className="text-sm font-medium">{email}</span>
+                <button
+                  onClick={() => deleteEmail(email)}
+                  className="rounded-xl p-2 text-slate-500 hover:bg-red-50 hover:text-red-600"
+                >
+                  <Trash2 size={17} />
+                </button>
+              </div>
+            ))
+          )}
+        </div>
+
+        {message && (
+          <div className="mt-5 rounded-2xl bg-slate-200 px-4 py-3 text-sm">
+            {message}
+          </div>
+        )}
+
+        <button
+          onClick={saveSettings}
+          className="mt-6 flex w-full items-center justify-center rounded-2xl bg-slate-900 py-4 text-white hover:bg-slate-700"
+        >
+          <Save className="mr-2" size={18} /> Save Settings
+        </button>
+      </div>
+    </main>
   );
 }
